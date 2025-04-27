@@ -28,7 +28,7 @@ The book has some errors.
 ```asm
 addi x12, x30, 8  # x12 = &A[f+1]
 ld x30, 0(x12)    # x30 = A[f+1]
-add x30, x30, x5  # x30 = A[f+1] + A[f] 
+add x30, x30, x5  # x30 = A[f+1] + A[f]
 sd x30, 0(x31)    # B[g] = x30
 ```
 
@@ -39,15 +39,15 @@ B[g] = A[f] + A[f+1];
 **2.5**
 
 - Little-endian (LSB first):
-    - 0: 0x12
-    - 1: 0xef
-    - 2: 0xcd
-    - 3: 0xab
+  - 0: 0x12
+  - 1: 0xef
+  - 2: 0xcd
+  - 3: 0xab
 - Big-endian (MSB first):
-    - 0: 0xab
-    - 1: 0xcd
-    - 2: 0xef
-    - 3: 0x12
+  - 0: 0xab
+  - 1: 0xcd
+  - 2: 0xef
+  - 3: 0x12
 
 **2.6**
 
@@ -132,12 +132,14 @@ The largest negative 64-bit integer is `-2^63`.
 **2.11.3**
 
 The overflow occurs if:
+
 - `x6 - 128 < -2^63` or `x6 < -2^63 + 128`.
 - `x6 - 128 > 2^63 - 1` or `x6 > 2^63 + 127`. (impossible)
 
 **2.12**
 
 `instr: 0000000_00001_00001_000_00001_0110011`:
+
 - `opcode: 0110011 -> R-type`.
 - `rd: 1`.
 - `funct3: 0 -> add`.
@@ -149,6 +151,7 @@ The overflow occurs if:
 **2.13**
 
 `sw x5, 32(x30) -> S-type`:
+
 - `opcode: 0100011`.
 - `imm[4:0]: 00000`.
 - `funct3: 010`.
@@ -228,6 +231,7 @@ I-type has an opcode and 2 reg fields: 6 more bits.
 **2.18**
 
 Assuming reg is 32-bit.
+
 ```asm
 slri x7, x5, 11
 slli x7, x7, 17
@@ -237,6 +241,7 @@ add x6, x7, x6
 ```
 
 More general approach.
+
 ```asm
 addi x7, x0, 0x3F # x7 = [5:0]
 slli x7, x7, 11   # x7 = [16:11]
@@ -314,7 +319,7 @@ while (i-- != 0)
 ```c
 acc = 0;
 i = 10;
-while (i-- >= 0) 
+while (i-- >= 0)
     acc += 2;
 ```
 
@@ -350,17 +355,17 @@ EXIT1:
 a = 10, b = 1
 
 - Outer
-    - Outer loop setup = 1
-    - Outer loop body = a * (Inner loop setup + Inner loop + Inner loop exit)
-    - Outer loop end = 1
-    - Outer loop exit = 0
+  - Outer loop setup = 1
+  - Outer loop body = a \* (Inner loop setup + Inner loop + Inner loop exit)
+  - Outer loop end = 1
+  - Outer loop exit = 0
 - Inner
-    - Inner loop setup = 4
-    - Inner loop: b * 6
-    - Inner loop end: 1
-    - Inner loop exit = 2
+  - Inner loop setup = 4
+  - Inner loop: b \* 6
+  - Inner loop end: 1
+  - Inner loop exit = 2
 
-Total instructions = 1 + a * (4 + (6 * b + 1) + 2) + 1 + 0 = 6ab + 7a + 2 = 132
+Total instructions = 1 + a _ (4 + (6 _ b + 1) + 2) + 1 + 0 = 6ab + 7a + 2 = 132
 
 **2.27**
 
@@ -390,7 +395,140 @@ while (i < 100) {
 add x29, x10, 800
 LOOP:
     lw x7, 0(x10)
-    addi x5, x5, x7 
+    addi x5, x5, x7
     addi x10, x10, 8
     blt x10, x29, LOOP
 ```
+
+**2.29**
+
+```asm
+fib:
+    beq x10, x0, DONE   # n == 0, DONE
+    addi x5, x0, 1      # x5 = 1
+    beq x10, x5, DONE   # n == 1, DONE
+
+    addi sp, sp, -16
+    sd x10, 8(sp)       # save arg reg first
+    sd x1, 0(sp)        # save ret address later
+
+    addi x10, x10, -1   # n - 1
+    jal x1, fib         # fib(n - 1)
+
+    ld x5, 8(sp)        # x5 = n
+    sd x10, 8(sp)       # put fib(n - 1) into stack
+    addi x10, x5, -2    # x10 = n - 2
+    jal x1, fib         # fib(n - 2)
+
+    ld x5, 8(sp)        # x5 = fib(n - 1)
+    add x10, x10, x5    # fib(n - 1) + fib(n - 2)
+
+    ld x1, 0(sp)
+    addi sp, sp, 16
+    DONE:
+        jalr x0, x1      # ret
+```
+
+**2.30**
+
+Assuming `sp = 0x7ffffffc` initially:
+
+1. first call:
+   - `0x7fffffec: n`
+   - `0x7ffffff4: x1`
+2. second call:
+   - `0x7fffffec: n`
+   - `0x7ffffff4: fib(n-1)`
+
+**2.31**
+
+```asm
+addi sp, sp, -16
+sd x1, 0(sp)
+add x5, x12, x13
+sd x5, 8(sp)
+
+jal x1, g
+
+ld x11, 8(sp)
+jal x1, g
+
+ld x1, 0(sp)
+addi sp, sp, 16
+jalr x0, x1
+```
+
+**2.32**
+
+Last call to `g` can directly return to the caller of `f`.
+
+```asm
+addi sp, sp, -16
+sd x1, 0(sp)
+add x5, x12, x13
+sd x5, 8(sp)
+
+jal x1, g
+
+ld x11, 8(sp)
+ld x1, 0(sp)     # Return to caller of f
+addi sp, sp, 16
+jal x0, g        # Call g
+```
+
+**2.33**
+
+- `x10-x14`: `g` can modify them.
+- `x8`, `x1`, `sp`: Callee-saved, so it stays same.
+
+**2.34**
+
+TODO(rexes-ND): Finish when you have a free time.
+
+**2.35**
+
+```asm
+lb x6, 0(x7)
+sw x6, 8(x7)
+```
+
+**2.35.1**
+
+x6 = 0x00000000_00000011
+
+- 0x10000000: 0x11
+- 0x10000008: 0x00
+
+**2.35.2**
+
+x6 = 0xFFFFFFFF_FFFFFF88
+
+- 0x10000000: 0x88
+- 0x10000008: 0x88
+
+**2.36**
+
+```asm
+lui x10, 0x12345
+addi x10, 0x678
+```
+
+**2.37**
+
+```asm
+TRY:
+    lr.d x5, 0(x10)
+    bge x5, x11, EXIT
+    add x5, x11, x0
+EXIT:
+    sc.d x6, x5, 0(x10)
+    bne x6, x0, TRY
+
+    jalr x0, x1
+```
+
+**2.38**
+
+TODO(rexes-ND): Need very good understanding of `lr.d` and `sc.d`.
+
+**2.39**
