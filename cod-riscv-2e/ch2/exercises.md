@@ -577,10 +577,10 @@ The CPI of arithmetic instruction is 0.14.
 **2.41**
 
 ```asm
-ld x5, [x10 + x5 * 8]
-ld x12, [x10 + x5 * 8 + 8]
-add x12, x12, x5
-sd x12, [x11 + x6 * 8]
+ld x30, [x10 + x5 * 8]
+ld x31, [x10 + x5 * 8 + 8]
+add x30, x30, x31
+sd x30, [x11 + x6 * 8]
 ```
 
 **2.42**
