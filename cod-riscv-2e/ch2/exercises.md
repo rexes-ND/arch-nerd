@@ -532,3 +532,62 @@ EXIT:
 TODO(rexes-ND): Need very good understanding of `lr.d` and `sc.d`.
 
 **2.39**
+
+**2.39.1**
+
+`exec_time = CPI * instr * clock_cycle_time`.
+
+- Before addition: 3800 M clock cycles
+- After addition: 4042.5 M clock cycles
+
+Therefore, it is not good design choice.
+
+**2.39.2**
+
+The execution time of only arithmetic instructions is 500 M.
+
+Execution time:
+
+- Initial: 3800 M
+- 2x: 3550 M (1.07x)
+- 10x: 3350 M (1.13x)
+
+**2.40**
+
+**2.40.1**
+
+The average CPI is 2.6 (1.4 + 0.6 + 0.6).
+
+**2.40.2**
+
+CPI = 0.75 x 2.6 = 1.95.
+
+The 1.4 has fallen to 0.75 (1.95 - 1.2), which is 1.87x.
+
+The CPI of arithmetic instruction is 1.07.
+
+**2.40.3**
+
+CPI = 0.5 x 2.6 = 1.3.
+
+The 1.4 has fallen to 0.1 (1.3 - 1.2), which is 14x.
+
+The CPI of arithmetic instruction is 0.14.
+
+**2.41**
+
+```asm
+ld x5, [x10 + x5 * 8]
+ld x12, [x10 + x5 * 8 + 8]
+add x12, x12, x5
+sd x12, [x11 + x6 * 8]
+```
+
+**2.42**
+
+```asm
+ld x28, [x10 + x28 * 8]
+ld x29, [x10 + x29 * 8]
+add x28, x28, x29
+sd x28, 64(x11)
+```
