@@ -357,6 +357,7 @@ for (i = 1; i < 8; ++i) {
     reg3 = 0;
     for (j = 0; j < 4; ++j) {
         reg2 = (reg0 << ((5 + i) * 16)) | (reg1 >> ((3-i) * 16));
+        reg2 *= F;
         for (k = 0; k < 4; ++k) {
             reg3[j] += reg2[k];
             reg3[4+j] += reg2[4+k];
