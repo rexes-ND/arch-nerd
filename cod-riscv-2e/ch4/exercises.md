@@ -444,3 +444,208 @@ The control should send a signal when it is safe to read an instruction.
 **4.22.4**
 
 0.36\*n
+
+**4.23**
+
+**4.23.1**
+
+The cycle time won't be affected.
+
+**4.23.2**
+
+The performance might improve since there will be no "use after load" stall.
+
+**4.23.3**
+
+The instruction count will increase, which might degrade the performance.
+
+**4.24**
+
+Choice 2 is correct since there must be stall before EX in `add` instruction.
+
+**4.25**
+
+**4.25.1**
+
+| 1   | 2   | 3   | 4   | 5   | 6   | 7   | 8   | 9   | 10  |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| IF  | ID  | EX  | MEM | WB  |
+|     | IF  | ID  | EX  | MEM | WB  |
+|     |     | IF  | ID  | ..  | EX  | MEM | WB  |
+|     |     |     | IF  | ..  | ID  | EX  | MEM | WB  |
+|     |     |     |     | ..  | IF  | ID  | EX  | MEM | WB  |
+
+The next 5 instructions are exact copy of previous 5 instructions.
+
+**4.25.2**
+
+The stages that do not perform useful work:
+
+- `add`: MEM
+- `addi`: MEM
+- `bnez`: MEM, WB
+
+There is no pipeline stage where all 5 stages are doing useful work.
+
+**4.26**
+
+**4.26.1**
+
+```
+# EX to 1st Only
+add x3, x1, x2
+add x5, x3, x4
+
+# MEM to 1st Only
+lw x2, 0(x1)
+add x4, x2, x3
+
+# EX to 2nd Only
+add x3, x1, x2
+add x6, x4, x5
+add x8, x3, x7
+
+# MEM to 2nd Only
+lw x2, 0(x1)
+add x5, x3, x4
+add x7, x2, x6
+
+# EX to 1st and EX to 2nd
+add x3, x1, x2
+add x5, x3, x4
+add x7, x3, x6
+```
+
+**4.26.2**
+
+```
+# EX to 1st Only
+add x3, x1, x2
+NOP
+NOP
+add x5, x3, x4
+
+# MEM to 1st Only
+lw x2, 0(x1)
+NOP
+NOP
+add x4, x2, x3
+
+# EX to 2nd Only
+add x3, x1, x2
+add x6, x4, x5
+NOP
+add x8, x3, x7
+
+# MEM to 2nd Only
+lw x2, 0(x1)
+add x5, x3, x4
+NOP
+add x7, x2, x6
+
+# EX to 1st and EX to 2nd
+add x3, x1, x2
+NOP
+NOP
+add x5, x3, x4
+add x7, x3, x6
+```
+
+**4.26.3**
+
+```
+lw x2, 0(x1)
+add x5, x3, x4
+NOP
+NOP
+add x6, x2, x5
+```
+
+- MEM to 2nd Only (1 stall)
+- EX to 1st Only (2 stalls)
+
+If analyzed each instruction independently, 3 stalls are needed but just 2 were enough.
+
+**4.26.4**
+
+Since there are 0.85 stalls per instruction, CPI is 1.85.
+
+**4.26.5**
+
+Out of all hazards, only Mem to 1st Only requires 1 stall.
+There will be 0.2 stalls per instruction and CPI is 1.2.
+
+**4.26.6**
+
+Forward only from the EX/MEM pipeline register (next-cycle forwarding):
+
+- EX to 1st: 0
+- MEM to 1st: 2
+- EX to 2nd: 1
+- MEM to 2nd: 1
+- EX to 1st and EX to 2nd: 1
+
+The CPI is 1.65.
+
+Forward only from the MEM/WB pipeline register (two-cycle forwarding):
+
+- EX to 1st: 1
+- MEM to 1st: 1
+- EX to 2nd: 0
+- MEM to 2nd: 0
+- EX to 1st and EX to 2nd: 1
+
+The CPU is 1.35.
+
+**4.26.7**
+
+| no FW  | full FW | FW from EX/MEM only | FW from MEM/WB only |
+| ------ | ------- | ------------------- | ------------------- |
+| 120 ps | 130 ps  | 120 ps              | 120 ps              |
+| 1.85   | 1.2     | 1.65                | 1.35                |
+| 1x     | 1.42x   | 1.12x               | 1.37x               |
+
+**4.26.8**
+
+The cycle time is 230 ps.
+The CPI is 1.
+The speedup is 0.68x of full FW.
+
+**4.26.9**
+
+There is no need to forward from MEM/WB to IF/ID of 2nd instruction in the case of "MEM to 1st and MEM to 2nd".
+
+**4.27**
+
+**4.27.1**
+
+```asm
+add x15, x12, x11
+NOP
+NOP
+lw  x13, 8(x15)
+lw  x12, 0(x2)
+NOP
+or  x13, x15, x13
+NOP
+NOP
+sw  x13, 0(x15)
+```
+
+**4.27.2**
+
+Not possible.
+
+**4.27.3**
+
+No stall is needed when the processor has forwarding.
+The original code executes correctly.
+
+**4.27.4**
+TODO(rexes-ND): study hazard and forward units.
+
+**4.27.5**
+TODO(rexes-ND): study hazard and forward units.
+
+**4.27.6**
+TODO(rexes-ND): study hazard and forward units.
